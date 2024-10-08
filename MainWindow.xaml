@@ -1,9 +1,13 @@
 ﻿<Window x:Class="LabNameGen.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="LabNameGen" Height="350" Width="500">
+        Title="LabNameGen" Height="500" Width="550" ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen" FontFamily="Segoe UI" Background="#f0f8ff">
     <Grid Margin="20">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -13,53 +17,70 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
+        <!-- Title -->
+        <TextBlock Text="LabNameGen - Hostname Generator" FontSize="18" FontWeight="Bold" Foreground="#4a4a4a"
+                   HorizontalAlignment="Center" Margin="0,0,0,15" Grid.Row="0"/>
+
         <!-- IP Address Input -->
-        <Label Content="IP Address:" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left"/>
-        <TextBox x:Name="IpTextBox" Grid.Row="0" HorizontalAlignment="Left" Margin="150,0,0,10" Width="250" ToolTip="Enter the IP address (e.g., 192.168.0.1)"/>
+        <Label Content="IP Address:" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Left" FontWeight="Bold" Width="100"/>
+        <TextBox x:Name="IpTextBox" Grid.Row="1" HorizontalAlignment="Left" Margin="130,0,0,10" Width="300" ToolTip="Enter the IP address (e.g., 192.168.0.1)" FontSize="14" Padding="4"/>
 
         <!-- Location ComboBox -->
-        <Label Content="Location:" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Left"/>
-        <ComboBox x:Name="LocationComboBox" Grid.Row="1" HorizontalAlignment="Left" Margin="150,0,0,10" Width="250" ToolTip="Select the location">
-            <ComboBoxItem>HLDCA (Homelab DC A)</ComboBoxItem>
-            <ComboBoxItem>CDCB (Contabo VPS)</ComboBoxItem>
+        <Label Content="Location:" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" FontWeight="Bold" Width="100"/>
+        <ComboBox x:Name="LocationComboBox" Grid.Row="2" HorizontalAlignment="Left" Margin="130,0,0,10" Width="300" ToolTip="Select the location" FontSize="14">
+            <ComboBoxItem Content="HLDCA (Homelab DC A)"/>
+            <ComboBoxItem Content="CDCB (Contabo VPS)"/>
+        </ComboBox>
+
+        <!-- Baremetal Checkbox -->
+        <CheckBox x:Name="BaremetalCheckBox" Content="Baremetal (No Hypervisor)" Grid.Row="3" HorizontalAlignment="Left" Margin="130,0,0,10" Checked="BaremetalCheckBox_Checked" Unchecked="BaremetalCheckBox_Unchecked" FontSize="14"/>
+
+        <!-- Network Devices ComboBox -->
+        <Label Content="Network Device:" Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" FontWeight="Bold" Width="100" x:Name="NetworkDeviceLabel" Visibility="Collapsed"/>
+        <ComboBox x:Name="NetworkDeviceComboBox" Grid.Row="4" HorizontalAlignment="Left" Margin="120,0,0,10" Width="300" ToolTip="Select the network device" FontSize="14" Visibility="Collapsed">
+            <ComboBoxItem Content="Router"/>
+            <ComboBoxItem Content="Switch"/>
+            <ComboBoxItem Content="Firewall"/>
+            <ComboBoxItem Content="Access Point"/>
         </ComboBox>
 
         <!-- OS ComboBox -->
-        <Label Content="Operating System:" Grid.Row="2" VerticalAlignment="Center" x:Name="OsLabel" HorizontalAlignment="Left"/>
-        <ComboBox x:Name="OsComboBox" Grid.Row="2" HorizontalAlignment="Left" Margin="150,0,0,10" Width="250" ToolTip="Select the operating system">
-            <ComboBoxItem>RHEL</ComboBoxItem>
-            <ComboBoxItem>Ubuntu</ComboBoxItem>
-            <ComboBoxItem>Debian</ComboBoxItem>
-            <ComboBoxItem>Windows Server Core</ComboBoxItem>
-            <ComboBoxItem>Windows Server GUI</ComboBoxItem>
+        <Label Content="Operating System:" Grid.Row="5" VerticalAlignment="Center" x:Name="OsLabel" HorizontalAlignment="Left" FontWeight="Bold" Width="115"/>
+        <ComboBox x:Name="OsComboBox" Grid.Row="5" HorizontalAlignment="Left" Margin="130,0,0,10" Width="300" ToolTip="Select the operating system" FontSize="14">
+            <ComboBoxItem Content="RHEL"/>
+            <ComboBoxItem Content="Ubuntu"/>
+            <ComboBoxItem Content="Debian"/>
+            <ComboBoxItem Content="Windows Server Core"/>
+            <ComboBoxItem Content="Windows Server GUI"/>
         </ComboBox>
 
         <!-- Hypervisor ComboBox -->
-        <Label Content="Hypervisor:" Grid.Row="3" VerticalAlignment="Center" x:Name="HypervisorLabel" HorizontalAlignment="Left"/>
-        <ComboBox x:Name="HypervisorComboBox" Grid.Row="3" HorizontalAlignment="Left" Margin="150,0,0,10" Width="250" ToolTip="Select the hypervisor" SelectionChanged="HypervisorComboBox_SelectionChanged">
-            <ComboBoxItem>VMware</ComboBoxItem>
-            <ComboBoxItem>Hyper-V</ComboBoxItem>
-            <ComboBoxItem>Proxmox</ComboBoxItem>
+        <Label Content="Hypervisor:" Grid.Row="6" VerticalAlignment="Center" x:Name="HypervisorLabel" HorizontalAlignment="Left" FontWeight="Bold" Width="100"/>
+        <ComboBox x:Name="HypervisorComboBox" Grid.Row="6" HorizontalAlignment="Left" Margin="130,0,0,10" Width="300" ToolTip="Select the hypervisor" FontSize="14" SelectionChanged="HypervisorComboBox_SelectionChanged">
+            <ComboBoxItem Content="VMware"/>
+            <ComboBoxItem Content="Hyper-V"/>
+            <ComboBoxItem Content="Proxmox"/>
         </ComboBox>
 
         <!-- VMware Product ComboBox (Hidden by Default) -->
-        <Label Content="VMware Product:" Grid.Row="4" VerticalAlignment="Center" x:Name="VmwareLabel" HorizontalAlignment="Left" Visibility="Collapsed"/>
-        <ComboBox x:Name="VmwareProductComboBox" Grid.Row="4" HorizontalAlignment="Left" Margin="150,0,0,10" Width="250" Visibility="Collapsed" ToolTip="Select the VMware product">
-            <ComboBoxItem>vCenter Appliance</ComboBoxItem>
-            <ComboBoxItem>ESXi</ComboBoxItem>
-            <ComboBoxItem>NSX</ComboBoxItem>
-            <ComboBoxItem>vSAN</ComboBoxItem>
-            <ComboBoxItem>Horizon</ComboBoxItem>
+        <Label Content="VMware Product:" Grid.Row="7" VerticalAlignment="Center" x:Name="VmwareLabel" HorizontalAlignment="Left" Visibility="Collapsed" FontWeight="Bold" Width="100"/>
+        <ComboBox x:Name="VmwareProductComboBox" Grid.Row="7" HorizontalAlignment="Left" Margin="120,0,0,10" Width="300" Visibility="Collapsed" ToolTip="Select the VMware product" FontSize="14">
+            <ComboBoxItem Content="vCenter Appliance"/>
+            <ComboBoxItem Content="ESXi"/>
+            <ComboBoxItem Content="NSX"/>
+            <ComboBoxItem Content="vSAN"/>
+            <ComboBoxItem Content="Horizon"/>
         </ComboBox>
 
-        <!-- Buttons -->
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Grid.Row="5" Margin="0,10,0,0">
-            <Button Content="Generate Hostname" Width="150" Click="GenerateHostname_Click" ToolTip="Generate the hostname"/>
-            <Button Content="Copy" Width="100" Margin="10,0,0,0" Click="CopyHostname_Click" ToolTip="Copy the generated hostname to clipboard"/>
-            <Button Content="Clear" Width="100" Margin="10,0,0,0" Click="ClearFields_Click" ToolTip="Clear all fields"/>
+        <!-- Buttons with ZIndex to make sure they are clickable -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Grid.Row="8" Margin="0,10,0,0" Panel.ZIndex="10">
+            <Button Content="Generate Hostname" Width="130" Click="GenerateHostname_Click" ToolTip="Generate the hostname" Padding="8" Background="#4caf50" Foreground="White" FontWeight="Bold"/>
+            <Button Content="Copy" Width="80" Margin="10,0,0,0" Click="CopyHostname_Click" ToolTip="Copy the generated hostname to clipboard" Padding="8"/>
+            <Button Content="Clear" Width="80" Margin="10,0,0,0" Click="ClearFields_Click" ToolTip="Clear all fields" Padding="8"/>
         </StackPanel>
 
-        <!-- Result Display -->
-        <TextBlock x:Name="ResultLabel" Grid.Row="6" TextWrapping="Wrap" Margin="0,10,0,0" FontSize="16" FontWeight="Bold" Foreground="DarkBlue"/>
+        <!-- Hostname Output TextBox -->
+        <Label Content="Generated Hostname:" Grid.Row="9" VerticalAlignment="Top" HorizontalAlignment="Left" FontWeight="Bold" Margin="0,10,0,0" Width="200"/>
+        <TextBox x:Name="ResultTextBox" Grid.Row="9" Margin="0,35,0,0" Width="500" Height="50" FontSize="14" Padding="5" Background="#f0f4c3" Foreground="#2e7d32" IsReadOnly="True" TextWrapping="Wrap"/>
     </Grid>
 </Window>
