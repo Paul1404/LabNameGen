@@ -11,30 +11,29 @@ namespace LabNameGen
             InitializeComponent();
         }
 
-        // Handle hypervisor selection and show VMware products if VMware is selected
+        // Handle hypervisor selection (simplified without visibility toggling)
         private void HypervisorComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            // No need to hide or show elements anymore, so this is simplified
             string hypervisor = GetComboBoxValue(HypervisorComboBox);
-
-            if (hypervisor == "VMware")
-            {
-                SetVmwareProductVisibility(true);
-                VmwareProductComboBox_SelectionChanged(); // Handle initial state
-            }
-            else
-            {
-                SetVmwareProductVisibility(false);
-                SetOsHypervisorVisibility(true);  // Replacing the undefined method
-            }
         }
 
-        // Handle VMware Product selection and visibility for OS and hypervisor fields
-        private void VmwareProductComboBox_SelectionChanged()
+        // Event handler for Baremetal checkbox checked
+        private void BaremetalCheckBox_Checked(object sender, RoutedEventArgs e)
         {
-            string selectedProduct = GetComboBoxValue(VmwareProductComboBox);
-            bool hideOsAndHypervisor = selectedProduct == "vCenter Appliance" || selectedProduct == "NSX" || selectedProduct == "vSAN";
+            // Optionally disable other inputs when baremetal is selected
+            OsComboBox.IsEnabled = true;
+            HypervisorComboBox.IsEnabled = false;
+            VmwareProductComboBox.IsEnabled = false;
+        }
 
-            SetOsHypervisorVisibility(!hideOsAndHypervisor);
+        // Event handler for Baremetal checkbox unchecked
+        private void BaremetalCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            // Re-enable inputs when baremetal is unchecked
+            OsComboBox.IsEnabled = true;
+            HypervisorComboBox.IsEnabled = true;
+            VmwareProductComboBox.IsEnabled = true;
         }
 
         // Generate Hostname and Validate Inputs
@@ -45,50 +44,49 @@ namespace LabNameGen
 
             if (string.IsNullOrEmpty(ip))
             {
-                DisplayError("IP Address is required.");
+                ResultTextBox.Text = "IP Address is required.";
                 return;
             }
 
             if (!IsValidIp(IpTextBox.Text))
             {
-                DisplayError("Invalid IP Address format.");
+                ResultTextBox.Text = "Invalid IP Address format.";
                 return;
             }
 
             string hostname = BuildHostname(ip, location);
             hostname = CleanHostname(hostname);
-
-            // Set the generated hostname in the output TextBox
             ResultTextBox.Text = hostname;
         }
 
         // Build the hostname based on selected options
         private string BuildHostname(string ip, string location)
         {
+            // Check if a network device is selected
             if (IsNetworkDeviceSelected(out string networkDevice))
             {
                 return $"{location}-{networkDevice.ToLower()}-{ip}";
             }
 
+            // Handle Baremetal option
             if (BaremetalCheckBox.IsChecked == true)
             {
-                string osAbbreviation = GetOsAbbreviation(GetComboBoxValue(OsComboBox));  // Renamed to osAbbreviation
-                return $"{location}-baremetal-{osAbbreviation}-{ip}".ToLower();
+                string osAbbreviationInBaremetal = GetOsAbbreviation(GetComboBoxValue(OsComboBox));
+                return $"{location}-baremetal-{osAbbreviationInBaremetal}-{ip}".ToLower();
             }
 
+            // Handle VMware product cases
             string vmwareProduct = GetComboBoxValue(VmwareProductComboBox);
-            if (vmwareProduct == "vCenter Appliance" || vmwareProduct == "NSX" || vmwareProduct == "vSAN")
+            if (vmwareProduct == "vCenter Appliance" || vmwareProduct == "NSX" || vmwareProduct == "vSAN" || vmwareProduct == "ESXi")
             {
-                string productAbbr = GetVmwareProductAbbreviation(vmwareProduct);
-                return $"{location}-{productAbbr}-{ip}";
+                return $"{location}-{GetVmwareProductAbbreviation(vmwareProduct)}-{ip}";
             }
 
-            string hypervisor = GetComboBoxValue(HypervisorComboBox);
-            string os = GetComboBoxValue(OsComboBox);
-            string osAbbr = GetOsAbbreviation(os);
-            string hypervisorAbbr = GetHypervisorAbbreviation(hypervisor);
+            // General case for OS and Hypervisor
+            string hypervisorAbbreviationInGeneral = GetHypervisorAbbreviation(GetComboBoxValue(HypervisorComboBox));
+            string osAbbreviationInGeneral = GetOsAbbreviation(GetComboBoxValue(OsComboBox));
 
-            return $"{location}-{hypervisorAbbr}-{osAbbr}-{ip}".ToLower();
+            return $"{location}-{hypervisorAbbreviationInGeneral}-{osAbbreviationInGeneral}-{ip}".ToLower();
         }
 
         // Helper method to handle network device selection
@@ -98,20 +96,13 @@ namespace LabNameGen
             return !string.IsNullOrEmpty(networkDevice);
         }
 
-        // Helper method to display error messages
-        private void DisplayError(string message)
-        {
-            ResultTextBox.Text = message;
-        }
-
         // Get Location Abbreviation
-        private string GetLocationAbbreviation()
+        private string GetLocationAbbreviation() => GetComboBoxValue(LocationComboBox).ToLower() switch
         {
-            string location = GetComboBoxValue(LocationComboBox).ToLower();
-            if (location.Contains("hldca")) return "HLDCA";
-            if (location.Contains("cdcb")) return "CDCB";
-            return "LOC"; // Default if no match found
-        }
+            var loc when loc.Contains("hldca") => "HLDCA",
+            var loc when loc.Contains("cdcb") => "CDCB",
+            _ => "LOC"  // Default if no match found
+        };
 
         // Extract the last two octets from the IP address
         private string GetLastTwoOctets(string ip)
@@ -121,54 +112,44 @@ namespace LabNameGen
         }
 
         // Abbreviation for OS
-        private string GetOsAbbreviation(string os)
+        private string GetOsAbbreviation(string os) => os switch
         {
-            return os switch
-            {
-                "RHEL" => "rhel",
-                "Ubuntu" => "ubnt",
-                "Debian" => "deb",
-                "Windows Server Core" => "wsc",
-                "Windows Server GUI" => "wsg",
-                _ => "os"
-            };
-        }
+            "RHEL" => "rhel",
+            "Ubuntu" => "ubnt",
+            "Debian" => "deb",
+            "Windows Server Core" => "wsc",
+            "Windows Server GUI" => "wsg",
+            _ => "os"
+        };
 
         // Abbreviation for Hypervisor
-        private string GetHypervisorAbbreviation(string hypervisor)
+        private string GetHypervisorAbbreviation(string hypervisor) => hypervisor switch
         {
-            return hypervisor switch
-            {
-                "VMware" => "vmw",
-                "Hyper-V" => "hv",
-                "Proxmox" => "pmx",
-                _ => "hyp"
-            };
-        }
+            "VMware" => "vmw",
+            "Hyper-V" => "hv",
+            "Proxmox" => "pmx",
+            _ => "hyp"
+        };
 
         // Abbreviation for VMware Products
-        private string GetVmwareProductAbbreviation(string product)
+        private string GetVmwareProductAbbreviation(string product) => product switch
         {
-            return product switch
-            {
-                "vCenter Appliance" => "vca",
-                "ESXi" => "esx",
-                "NSX" => "nsx",
-                "vSAN" => "vsan",
-                "Horizon" => "hor",
-                _ => "vmwprod"
-            };
-        }
+            "vCenter Appliance" => "vca",
+            "ESXi" => "esx",
+            "NSX" => "nsx",
+            "vSAN" => "vsan",
+            "Horizon" => "hor",
+            _ => "vmwprod"
+        };
 
-        // Handle Baremetal Checkbox selection
-        private void BaremetalCheckBox_Checked(object sender, RoutedEventArgs e)
-        {
-            SetHypervisorVisibility(false);
-        }
+        // Validate IP Address format
+        private bool IsValidIp(string ip) => IPAddress.TryParse(ip, out _);
 
-        private void BaremetalCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        // Clean hostname to remove any special characters and enforce hostname best practices
+        private string CleanHostname(string hostname)
         {
-            SetHypervisorVisibility(true);
+            string cleaned = System.Text.RegularExpressions.Regex.Replace(hostname.ToLower(), @"[^a-z0-9-]", "");
+            return cleaned.Length > 63 ? cleaned.Substring(0, 63) : cleaned;
         }
 
         // Copy hostname silently to clipboard
@@ -188,51 +169,10 @@ namespace LabNameGen
             OsComboBox.SelectedIndex = -1;
             HypervisorComboBox.SelectedIndex = -1;
             VmwareProductComboBox.SelectedIndex = -1;
-            SetVmwareProductVisibility(false);
-            SetOsHypervisorVisibility(true);
             ResultTextBox.Text = "";
         }
 
-        // Validate IP Address format
-        private bool IsValidIp(string ip)
-        {
-            return IPAddress.TryParse(ip, out _);
-        }
-
-        // Clean hostname to remove any special characters and enforce hostname best practices
-        private string CleanHostname(string hostname)
-        {
-            string cleanedHostname = System.Text.RegularExpressions.Regex.Replace(hostname.ToLower(), @"[^a-z0-9-]", "");
-            return cleanedHostname.Length > 63 ? cleanedHostname.Substring(0, 63) : cleanedHostname;
-        }
-
-        // Helper to set VMware product visibility
-        private void SetVmwareProductVisibility(bool visible)
-        {
-            VmwareProductComboBox.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
-            VmwareLabel.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
-        }
-
-        // Helper to set OS and Hypervisor visibility
-        private void SetOsHypervisorVisibility(bool visible)
-        {
-            OsComboBox.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
-            OsLabel.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
-            HypervisorComboBox.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
-            HypervisorLabel.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
-        }
-
-        // Helper to set Hypervisor visibility
-        private void SetHypervisorVisibility(bool visible)
-        {
-            HypervisorComboBox.IsEnabled = visible;
-            HypervisorLabel.IsEnabled = visible;
-        }
-
         // Helper to get the selected value from ComboBox
-        private string GetComboBoxValue(ComboBox comboBox)
-        {
-            return (comboBox.SelectedItem as ComboBoxItem)?.Content.ToString() ?? string.Empty;
-        }
+        private string GetComboBoxValue(ComboBox comboBox) => (comboBox.SelectedItem as ComboBoxItem)?.Content.ToString() ?? string.Empty;
     }
 }

@@ -10,7 +10,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="icons8-mechanische-analyse-96.ico" />
+    <None Remove="white-gradient-abstract.jpeg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="icons8-mechanische-analyse-96.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="white-gradient-abstract.jpeg" />
   </ItemGroup>
 
 </Project>
